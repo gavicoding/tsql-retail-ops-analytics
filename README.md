@@ -91,4 +91,4 @@ Execute scripts in order via SSMS, Azure Data Studio, or `sqlcmd`:
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Apache License 2.0 - see [LICENSE](LICENSE).
