@@ -29,6 +29,7 @@ Portfólio técnico de **T-SQL / SQL Server** sobre um modelo **100% sintético 
 - **Pré-agregação incremental:** alguns dias por rodada com `MERGE`, em vez de varrer 12 meses de log a cada consulta.
 - **Agregação em duas etapas com `#temp` indexada:** contorna o timeout e o erro 130 (`EXISTS` dentro de `SUM`).
 - **Extended Events:** descobre quais procedures um aplicativo chama antes de automatizá-lo.
+- **Anonimização LGPD (Art. 18):** atende um pedido de eliminação de forma irreversível (CPF trocado por código aleatório, nunca por hash, que dá para reverter por força bruta), mantendo pedidos, totais e chaves para a retenção legal, com hash de evidência e auditoria sem dado pessoal.
 - **Menor privilégio para robô:** só `EXECUTE` em uma procedure que apenas prorroga o término de um acesso.
 
 Tudo roda em um **SQL Server 2022 real no CI**, com asserções que quebram o build se o resultado estiver errado.

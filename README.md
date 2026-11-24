@@ -72,6 +72,7 @@ erDiagram
 | **Backlog with a per-row EXISTS** | Correlated `EXISTS` on every row ran past the 15s timeout, and `EXISTS` inside `SUM` is not allowed (error 130) | Two stages: materialise a flagged, indexed `#temp`, then aggregate ([`06_contingency_backlog_two_stage`](queries/06_contingency_backlog_two_stage.sql)) |
 | **Automating a vendor application** | Writing straight into ERP tables skips stock, finance and audit side effects | Short filtered Extended Events session to see which procedures the app calls, then call those ([`03_trace_app_calls_with_xevents`](observability/03_trace_app_calls_with_xevents.sql)) |
 | **Bot that extends temporary access** | A bot with table rights could create windows or move start times | Role with `EXECUTE` on one procedure that only extends the end time, direct DML denied ([`02_time_boxed_access_extension`](security/02_time_boxed_access_extension.sql)) |
+| **LGPD Art. 18 erasure request** | Deleting the customer breaks orders and fiscal reports; hashing the CPF only pseudonymises it (brute-forceable) | Irreversible anonymization: random surrogate for the tax id, personal fields removed, birth date generalised to the year, orders kept for legal retention, evidence hash and PII-free audit ([`usp_anonymize_customer`](procedures/usp_anonymize_customer.sql), proved by [`02_privacy_assertions`](tests/sql/02_privacy_assertions.sql)) |
 
 ---
 
@@ -93,14 +94,15 @@ Every push starts a throwaway **SQL Server 2022** container in GitHub Actions, r
 - the cost fallback;
 - batch ingest idempotency (in-batch duplicate, existing key, existing registry, same batch twice);
 - pre-aggregation reruns;
-- rejection of an invalid access extension.
+- rejection of an invalid access extension;
+- LGPD erasure: personal data gone from every table, totals and foreign keys unchanged, reruns rejected.
 
 ### Run Against SQL Server (2019 / 2022+)
 
 Execute scripts in order via SSMS, Azure Data Studio, or `sqlcmd`:
 1. `schema/01_schema.sql`
 2. `schema/02_indexes.sql`
-3. `schema/03_seed_data.sql`, `schema/04_purchasing_ingest_schema.sql`, `schema/05_purchasing_seed_data.sql`
+3. `schema/03_seed_data.sql` through `schema/07_customer_privacy_seed_data.sql`
 4. `procedures/*.sql`, `queries/*.sql`, `observability/*.sql`, `security/*.sql`
 5. `tests/sql/*.sql` (assertions)
 
