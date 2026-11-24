@@ -24,7 +24,7 @@ BEGIN
 
     IF @@ROWCOUNT = 0
     BEGIN
-        THROW 50010, 'Window not found, or the new end is not a valid extension.', 1;
+        THROW 50010, 'Window not found, or the new finish time is not a valid extension.', 1;
     END
 
     SELECT window_id, grantee, starts_at, ends_at
