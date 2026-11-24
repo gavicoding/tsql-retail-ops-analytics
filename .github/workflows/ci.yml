@@ -19,3 +19,46 @@ jobs:
 
       - name: Run SQL structure and analytical logic verification
         run: python -m unittest discover -s tests -v
+
+  sql-server-integration:
+    # Executes every script against a real SQL Server 2022 and runs the assertions
+    # in tests/sql. The container is throwaway; the SA password is per run.
+    runs-on: ubuntu-latest
+    env:
+      SA_PASSWORD: Ci_${{ github.run_id }}_Aa1!
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: Ci_${{ github.run_id }}_Aa1!
+        ports:
+          - 1433:1433
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy scripts into the SQL Server container
+        run: |
+          CID=$(docker ps -qf "ancestor=mcr.microsoft.com/mssql/server:2022-latest")
+          echo "CID=$CID" >> "$GITHUB_ENV"
+          docker cp . "$CID":/work
+
+      - name: Wait for SQL Server
+        run: |
+          for i in $(seq 1 40); do
+            if docker exec "$CID" /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$SA_PASSWORD" -Q "SELECT 1" >/dev/null 2>&1; then
+              echo "ready"; exit 0
+            fi
+            sleep 3
+          done
+          echo "SQL Server did not start"; exit 1
+
+      - name: Run every script and the integration assertions
+        run: |
+          run() { docker exec "$CID" /opt/mssql-tools18/bin/sqlcmd -C -b -I -S localhost -U sa -P "$SA_PASSWORD" "$@"; }
+          run -Q "CREATE DATABASE retail_ops;"
+          for f in schema/*.sql procedures/*.sql queries/*.sql observability/*.sql security/*.sql tests/sql/*.sql; do
+            echo "::group::$f"
+            run -d retail_ops -i "/work/$f"
+            echo "::endgroup::"
+          done

@@ -22,6 +22,19 @@ Portfólio técnico de **T-SQL / SQL Server** sobre um modelo **100% sintético 
 
 ---
 
+## Padrões de Produção (casos reais, recriados com dados fictícios)
+
+- **Relatório com filtro opcional por produto:** `TRY_CONVERT` com `NULLIF` para campo vazio ou inválido (o `ISNUMERIC` aceita `'$'`, `'1e5'` e `'12,5'`, e `TRY_CONVERT(INT, '')` devolve `0`) e `OPTION (RECOMPILE)` contra parameter sniffing.
+- **Ingestão idempotente em lote:** um único comando, com deduplicação no lote, `NOT EXISTS` nas duas chaves com `UPDLOCK, HOLDLOCK` e `OUTPUT ... INTO @tabela`.
+- **Pré-agregação incremental:** alguns dias por rodada com `MERGE`, em vez de varrer 12 meses de log a cada consulta.
+- **Agregação em duas etapas com `#temp` indexada:** contorna o timeout e o erro 130 (`EXISTS` dentro de `SUM`).
+- **Extended Events:** descobre quais procedures um aplicativo chama antes de automatizá-lo.
+- **Menor privilégio para robô:** só `EXECUTE` em uma procedure que apenas prorroga o término de um acesso.
+
+Tudo roda em um **SQL Server 2022 real no CI**, com asserções que quebram o build se o resultado estiver errado.
+
+---
+
 ## Execução dos Testes Automatizados
 
 ```bash
