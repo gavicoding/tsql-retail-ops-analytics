@@ -4,7 +4,8 @@
 --   * The report screen sends the product as free text. A blank field used to break
 --     the conversion to a number. TRY_CONVERT turns blank or invalid input into NULL
 --     with no error. (ISNUMERIC is not enough: it returns 1 for '$', '.', '-', '1e5'
---     and '12,5', and the conversion still fails afterwards.)
+--     and '12,5', and the conversion still fails afterwards. Blank needs NULLIF too:
+--     TRY_CONVERT(INT, '') returns 0, which would silently filter product 0.)
 --   * "(col = @p OR @p IS NULL)" with a cached plan suffers from parameter sniffing:
 --     the plan built for a single product (index seek) is reused for the full-period
 --     extract, and vice versa. OPTION (RECOMPILE) builds the right plan every run.
@@ -19,7 +20,8 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @item_id INT = TRY_CONVERT(INT, LTRIM(RTRIM(@product_text)));
+    -- NULLIF first: TRY_CONVERT(INT, '') returns 0, not NULL, and would filter product 0.
+    DECLARE @item_id INT = TRY_CONVERT(INT, NULLIF(LTRIM(RTRIM(@product_text)), N''));
 
     SELECT
         pi.store_id,
