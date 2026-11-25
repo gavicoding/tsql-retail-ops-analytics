@@ -12,6 +12,19 @@ A **100% synthetic, production-inspired T-SQL / SQL Server analytics and DBA too
 
 ---
 
+## In plain words
+
+Slow reports when an optional filter comes in blank, batch imports that duplicate rows or stop at the first error, dashboards that sum 12 months of logs on every load, items counted twice, a bot with too much access, an LGPD erasure request that would break orders: these are real SQL Server problems I solved at work.
+
+Each one is rebuilt here on a fully fictional database, with the before, the after and the why.
+
+**What you gain**
+
+- **Patterns ready to adapt**, each with the before and after side by side.
+- **Proof, not just a description:** every script runs on a real SQL Server 2022 on each change and the tests check the results.
+
+---
+
 ## Core Patterns Demonstrated
 
 - **Single-Pass Conditional Aggregation:** Computes store/daily net sales alongside strategic category subtotals and share percentages in one scan without row multiplication (`SUM(CASE WHEN ...)` + `NULLIF`).
